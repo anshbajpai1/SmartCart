@@ -8,6 +8,8 @@ import InvoicePage from "./pages/InvoicePage";
 import { auth } from "./firebase";
 import "./index.css";
 
+const ACTIVE_STORE_KEY = "smartcart.activeStore";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState([]);
@@ -15,11 +17,17 @@ export default function App() {
   useEffect(() => auth.onAuthStateChanged((currentUser) => {
     setUser(currentUser); setCartItems([]);
     if (currentUser) {
-      const saved = localStorage.getItem(`smartcart.store.${currentUser.uid}`);
+      // A store belongs to this device, not to an individual customer account.
+      // Existing per-user activations are migrated once for a seamless upgrade.
+      let saved = localStorage.getItem(ACTIVE_STORE_KEY);
+      if (!saved) {
+        saved = localStorage.getItem(`smartcart.store.${currentUser.uid}`);
+        if (saved) localStorage.setItem(ACTIVE_STORE_KEY, saved);
+      }
       setStore(saved ? JSON.parse(saved) : null);
     } else setStore(null);
   }), []);
-  const activateStore = (selectedStore) => { localStorage.setItem(`smartcart.store.${user.uid}`, JSON.stringify(selectedStore)); setStore(selectedStore); };
+  const activateStore = (selectedStore) => { localStorage.setItem(ACTIVE_STORE_KEY, JSON.stringify(selectedStore)); setStore(selectedStore); };
   const signOut = async () => { setCartItems([]); await auth.signOut(); };
   const protectedPage = (page) => user ? page : <Navigate to="/" replace />;
   return <Router><Routes>
