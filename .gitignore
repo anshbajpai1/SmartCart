@@ -1,0 +1,6 @@
+node_modules/
+build/
+.env
+.env.*
+!*.example
+server/smartcart3-80472-firebase-adminsdk-fbsvc-b20833d0ce.json
