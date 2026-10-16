@@ -19,12 +19,14 @@ export default function CheckoutPage({ adminId, clearCart, onComplete }) {
     if (!/^\d{10}$/.test(form.phone)) return setError("Enter a valid 10-digit mobile number.");
     setSaving(true); setError("");
     try {
-      const order = { customerId: auth.currentUser?.uid || "", customerEmail: auth.currentUser?.email || "", customerName: form.name.trim(), phone: form.phone, paymentMethod: form.paymentMethod, cartItems: items, totalAmount: total, status: "placed", createdAt: serverTimestamp() };
+      const isCash = form.paymentMethod === "Cash";
+      const cashCode = isCash ? String(Math.floor(10000000 + Math.random() * 90000000)) : null;
+      const order = { customerId: auth.currentUser?.uid || "", customerEmail: auth.currentUser?.email || "", customerName: form.name.trim(), phone: form.phone, paymentMethod: form.paymentMethod, cartItems: items, totalAmount: total, status: isCash ? "awaiting_cash" : "completed", paymentStatus: isCash ? "pending" : "paid", cashCode, createdAt: serverTimestamp() };
       const orderRef = await addDoc(collection(db, "admins", adminId, "orders"), order);
       await addDoc(collection(db, "admins", adminId, "customerActivity"), { ...order, orderId: orderRef.id, activityType: "checkout" });
       clearCart();
       await onComplete();
-      navigate("/invoice", { state: { ...form, totalAmount: total, cartItems: items, orderId: orderRef.id } });
+      navigate(`/orders/${orderRef.id}`);
     } catch (requestError) { setError(requestError.message || "Unable to record this order. Please try again."); }
     finally { setSaving(false); }
   };

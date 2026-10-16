@@ -5,6 +5,8 @@ import StoreActivationPage from "./pages/StoreActivationPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import InvoicePage from "./pages/InvoicePage";
+import OrdersPage from "./pages/OrdersPage";
+import OrderDetailsPage from "./pages/OrderDetailsPage";
 import { auth } from "./firebase";
 import "./index.css";
 
@@ -33,7 +35,9 @@ export default function App() {
     <Route path="/" element={store ? (user ? <Navigate to="/cart" replace /> : <LoginPage onLoginSuccess={setUser} />) : <Navigate to="/activate-store" replace />} />
     <Route path="/activate-store" element={store ? <Navigate to="/" replace /> : <StoreActivationPage onActivated={activateStore} />} />
     <Route path="/cart" element={protectedPage(store ? <CartPage user={user} adminId={store.adminId} storeName={store.storeName} cartItems={cartItems} setCartItems={setCartItems} onSignOut={signOut} /> : <Navigate to="/activate-store" replace />)} />
-    <Route path="/checkout" element={protectedPage(store ? <CheckoutPage adminId={store.adminId} clearCart={() => setCartItems([])} onComplete={signOut} /> : <Navigate to="/activate-store" replace />)} />
+    <Route path="/checkout" element={protectedPage(store ? <CheckoutPage adminId={store.adminId} clearCart={() => setCartItems([])} onComplete={() => setCartItems([])} /> : <Navigate to="/activate-store" replace />)} />
+    <Route path="/orders" element={protectedPage(store ? <OrdersPage adminId={store.adminId} /> : <Navigate to="/activate-store" replace />)} />
+    <Route path="/orders/:orderId" element={protectedPage(store ? <OrderDetailsPage adminId={store.adminId} /> : <Navigate to="/activate-store" replace />)} />
     <Route path="/invoice" element={<InvoicePage />} /><Route path="*" element={<Navigate to="/" replace />} />
   </Routes></Router>;
 }
